@@ -91,15 +91,15 @@ endtask
   This task reports the results for the unit tests
 */
 function void svunit_testsuite::report();
-  int     pass_cnt;
+  int     pass_cnt = 0;
   string  success_str;
 
   foreach(list_of_testcases[i])
     list_of_testcases[i].report();
 
-  begin
-    svunit_testcase match[$] = list_of_testcases.find() with (item.get_results() == PASS);
-    pass_cnt = match.size();
+  //Vivado Xsim 2020.2 gets into an infinite loop when using array.find
+  foreach(list_of_testcases[i]) begin
+    pass_cnt += (list_of_testcases[i].get_results() == PASS);
   end
 
   if (pass_cnt == list_of_testcases.size()) begin

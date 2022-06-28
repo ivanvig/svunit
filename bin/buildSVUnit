@@ -39,6 +39,8 @@ my @tests;
 my $mock;
 my $uvm;
 my $wavedrom;
+my $relativepaths;
+my $incdir;
 my $help;
 
 
@@ -54,6 +56,8 @@ sub usage() {
   print "  -m|--mock                : includes the uvm_mock_pkg to the final build file\n";
   print "  -U|--uvm                 : build SVUnit with UVM\n";
   print "  -w|--wavedrom            : process json files as wavedrom output\n";
+  print "     --relative-paths      : use relative paths instead of absolute paths\n";
+  print "  -i|--incdir              : use -i for incdir instead of standard +incdir+\n";
   print "  -h|--help                : prints this help screen\n";
   print "\n";
   exit 1;
@@ -65,7 +69,7 @@ sub getFilelists
   find({
       wanted => sub {
                       if (/\/svunit.f$/) {
-                        $FILELIST->print("-f $cwd/$_\n");
+                        $FILELIST->print("-f " . getCwdPath($_) . "\n");
                       }
                     },
       no_chdir => 1
@@ -131,11 +135,11 @@ sub buildTestsuite
   if (@unittest > 0) {
     my $cmd = "create_testsuite.pl -overwrite -out $outdir/$dirID\_testsuite.sv";
     foreach (@unittest) {
-      $FILELIST->print("$cwd/$_\n");
+      $FILELIST->print(getCwdPath($_) . "\n");
       $cmd .= " -add $_";
     }
     system($cmd);
-    $FILELIST->print("+incdir+$cwd/$dir\n");
+    $FILELIST->print(getIncdir() . getCwdPath($dir) . "\n");
   }
 
   # recursively do the same through sub-directories
@@ -169,13 +173,41 @@ sub getUnittests {
   return @unittests;
 }
 
+sub getSVUnitPath {
+  my $path = shift;
+  my $p = File::Spec->catfile("$ENV{SVUNIT_INSTALL}", $path);
+  if (defined $relativepaths) {
+    return File::Spec->abs2rel($p, $outdir);
+  } else {
+    return $p;
+  }
+}
 
+sub getCwdPath {
+  my $path = shift;
+  my $p = File::Spec->catfile("$cwd", $path);
+  if (defined $relativepaths) {
+    return File::Spec->abs2rel($p, $outdir);
+  } else {
+    return $p;
+  }
+}
+
+sub getIncdir {
+  if (defined $incdir) {
+    return "-i ";
+  } else {
+    return "+incdir+";
+  }
+}
 
 GetOptions("o|out=s" => \$outdir,
            "t|test=s" => \@tests,
            "m|mock" => \$mock,
            "U|uvm" => \$uvm,
            "w|wavedrom" => \$wavedrom,
+           "relative-paths" => \$relativepaths,
+           "i|incdir" => \$incdir,
            "h|help" => \$help
            ) or usage();
 
@@ -186,21 +218,21 @@ if (! -e $outdir ) {
 }
 $FILELIST = IO::File->new();
 $FILELIST->open(">$outdir/.svunit.f");
-$FILELIST->print("+incdir+$cwd\n");
-$FILELIST->print("+incdir+$ENV{SVUNIT_INSTALL}/svunit_base/junit-xml\n");
-$FILELIST->print("$ENV{SVUNIT_INSTALL}/svunit_base/junit-xml/junit_xml.sv\n");
-$FILELIST->print("+incdir+$ENV{SVUNIT_INSTALL}/svunit_base\n");
-$FILELIST->print("$ENV{SVUNIT_INSTALL}/svunit_base/svunit_pkg.sv\n");
+$FILELIST->print(getIncdir() . getCwdPath($_) . "\n");
+$FILELIST->print(getIncdir() . getSVUnitPath("svunit_base/junit-xml") . "\n");
+$FILELIST->print(getSVUnitPath("svunit_base/junit-xml/junit_xml.sv") . "\n");
+$FILELIST->print(getIncdir() . getSVUnitPath("svunit_base") . "\n");
+$FILELIST->print(getSVUnitPath("svunit_base/svunit_pkg.sv") . "\n");
 if (defined $mock) {
-  $FILELIST->print("$ENV{SVUNIT_INSTALL}/svunit_base/uvm-mock/svunit_uvm_mock_pkg.sv\n");
+  $FILELIST->print(getSVUnitPath("svunit_base/uvm-mock/svunit_uvm_mock_pkg.sv") . "\n");
 }
 
 if ($uvm) {
-  $FILELIST->print("+incdir+$ENV{SVUNIT_INSTALL}/svunit_base/uvm-mock\n");
-  $FILELIST->print("$ENV{SVUNIT_INSTALL}/svunit_base/uvm-mock/svunit_uvm_mock_pkg.sv\n");
+  $FILELIST->print(getIncdir() . getSVUnitPath("svunit_base/uvm-mock") . "\n");
+  $FILELIST->print(getSVUnitPath("svunit_base/uvm-mock/svunit_uvm_mock_pkg.sv") . "\n");
 }
 if ($wavedrom) {
-  system("python3 $ENV{SVUNIT_INSTALL}/bin/wavedromSVUnit.py");
+  system("python3 " . getSVUnitPath("bin/wavedromSVUnit.py"));
 }
 
 getFilelists;
