@@ -1,0 +1,40 @@
+CAPI=2:
+ 
+name: ::svunit
+description: An open-source test framework for ASIC and FPGA developers writing Verilog/SystemVerilog code
+ 
+filesets:
+  include:
+    files:
+      - svunit_base/junit-xml/junit_xml.sv
+      - svunit_base/svunit_pkg.sv
+      - svunit_base/svunit_base.sv:                            {is_include_file: true}
+      - svunit_base/uvm-mock/svunit_uvm_test.sv:               {is_include_file: true}
+      - svunit_base/uvm-mock/svunit_uvm_mock_pkg.sv:           {is_include_file: true}
+      - svunit_base/uvm-mock/svunit_idle_uvm_domain.sv:        {is_include_file: true}
+      - svunit_base/uvm-mock/svunit_uvm_report_mock.sv:        {is_include_file: true}
+      - svunit_base/svunit_testcase.sv:                        {is_include_file: true}
+      - svunit_base/svunit_testsuite.sv:                       {is_include_file: true}
+      - svunit_base/svunit_testrunner.sv:                      {is_include_file: true}
+      - svunit_base/svunit_globals.svh:                        {is_include_file: true}
+      - svunit_base/svunit_types.svh:                          {is_include_file: true}
+      - svunit_base/uvm-mock/svunit_uvm_report_mock_types.svh: {is_include_file: true}
+      - svunit_base/junit-xml/TestSuite.svh:                   {is_include_file: true}
+      - svunit_base/junit-xml/XmlElement.svh:                  {is_include_file: true}
+      - svunit_base/junit-xml/TestCase.svh:                    {is_include_file: true}
+      - svunit_base/util/clk_and_reset.svh:                    {is_include_file: true}
+      - svunit_base/svunit_filter.svh:                         {is_include_file: true}
+      - svunit_base/svunit_defines.svh:                        {is_include_file: true}
+    file_type : systemVerilogSource
+
+generators:
+  svunit_gen:
+    interpreter: python3
+    command: testrunner_gen.py
+    description: Generates the SVUnit test runner
+    usage: |
+      The svunit generator is a simple wrapper around the buildSVUnit command
+
+targets:
+  default:
+    filesets: [include]
