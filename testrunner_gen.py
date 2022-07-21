@@ -7,8 +7,15 @@ import os
 class SVUnitGenerator(Generator):
     def run(self):
         cwd = self.files_root
-        args = ['buildSVUnit', '-o', 'generated']
-        rc = subprocess.call(args, cwd=cwd)
+        tb_files_arg = ('-t ' + '-t '.join(self.config['test_files'])).split(' ')
+        my_env = os.environ.copy()
+        my_env["PATH"] = os.path.abspath(os.path.dirname(__file__)) + '/bin:' + my_env["PATH"]
+        args = [
+            'buildSVUnit',
+            '-o',
+            'generated'
+        ] + tb_files_arg
+        rc = subprocess.call(args, cwd=cwd, env=my_env)
         if rc:
             exit(1)
 
