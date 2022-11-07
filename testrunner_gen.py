@@ -7,7 +7,7 @@ import os
 class SVUnitGenerator(Generator):
     def run(self):
         cwd = self.files_root
-        tb_files_arg = ('-t ' + '-t '.join(self.config['test_files'])).split(' ')
+        tb_files_arg = ('-t ' + ' -t '.join(self.config['test_files'])).split(' ')
         my_env = os.environ.copy()
         my_env["PATH"] = os.path.abspath(os.path.dirname(__file__)) + '/bin:' + my_env["PATH"]
         args = [
